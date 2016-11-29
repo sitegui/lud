@@ -62,11 +62,11 @@ function draw() {
 	cntxt.translate(bX, bY)
 	cntxt.rotate(bA)
 	cntxt.beginPath()
-	cntxt.moveTo(-0.75 * bL, 0)
-	cntxt.lineTo(-0.3 * bL, -2 * bL)
-	cntxt.lineTo(0.3 * bL, -2 * bL)
-	cntxt.lineTo(0.75 * bL, 0)
-	cntxt.lineTo(-0.75 * bL, 0)
+	cntxt.moveTo(0, 0.75 * bL)
+	cntxt.lineTo(-2 * bL, 0.3 * bL)
+	cntxt.lineTo(-2 * bL, -0.3 * bL)
+	cntxt.lineTo(0, -0.75 * bL)
+	cntxt.lineTo(0, 0.75 * bL)
 	cntxt.fillStyle = 'black'
 	cntxt.fill()
 	cntxt.restore()
@@ -77,6 +77,33 @@ function draw() {
 		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
 		cntxt.fillStyle = '#D6EC1B'
 		cntxt.fill()
+	}
+
+	// Find closest ball
+	let bestBall = null,
+		bestDist = Infinity
+	for (let ball of balls) {
+		let dx = bX - ball.x,
+			dy = bY - ball.y,
+			dist = Math.sqrt(dx * dx + dy * dy)
+		if (dist < bestDist) {
+			bestDist = dist
+			bestBall = ball
+		}
+	}
+
+	// Go for it
+	if (bestBall) {
+		if (bestDist < 0.1) {
+			// Grab it
+			balls.splice(balls.indexOf(bestBall), 1)
+		} else {
+			let ang = Math.atan2(bestBall.y - bY, bestBall.x - bX),
+				v = Math.min(1, bestDist)
+			bX += v * Math.cos(ang)
+			bY += v * Math.sin(ang)
+			bA = ang
+		}
 	}
 }
 
