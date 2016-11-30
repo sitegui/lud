@@ -13,8 +13,18 @@ let canvas = document.getElementById('canvas'),
 	bY = 0,
 	// Bot angle (radians)
 	bA = 0,
-	// Bot size
-	bL = 0.35,
+	// Bot size (a trapezoid, with bases bDimB1, bDimB2 and height bDimH)
+	bDimB1 = 0.4,
+	bDimB2 = 0.5,
+	bDimH = 0.75,
+	bGC = -(2 * bDimB1 * bDimH + bDimB2 * bDimH) / (3 * (bDimB1 + bDimB2)),
+	// Bot wheel max speed (m/s)
+	bS = 1,
+	// Bot target
+	bTX = 0,
+	bTY = 0,
+	// Bot move type: stop, angle or position
+	bM = 'stop',
 	// Tenis ball radius
 	tBR = 0.0651 / 2,
 	// List of balls in the ground
@@ -25,13 +35,16 @@ canvas.width = vW
 canvas.height = vH
 
 // Get scale to fit real in visual
-let prop = Math.min(vW / rW, vH / rH)
+let prop = Math.min(vW / rW, vH / rH),
+	lastFrame = Date.now()
 
 // Transform to use meters as a unit and center at the center
 cntxt.translate(vW / 2, vH / 2)
 cntxt.scale(prop, -prop)
 
 function draw() {
+	let now = Date.now(),
+		dt = (Date.now() - lastFrame) / 1e3
 	cntxt.fillStyle = '#A44C48'
 	cntxt.fillRect(-100, 100, 200, -200)
 
@@ -57,27 +70,27 @@ function draw() {
 	cntxt.strokeStyle = '#EEEEEE'
 	cntxt.stroke()
 
+	// Draw balls
+	for (let ball of balls) {
+		cntxt.beginPath()
+		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
+		cntxt.fillStyle = '#c5d823'
+		cntxt.fill()
+	}
+
 	// Draw bot
 	cntxt.save()
 	cntxt.translate(bX, bY)
 	cntxt.rotate(bA)
 	cntxt.beginPath()
-	cntxt.moveTo(0, 0.75 * bL)
-	cntxt.lineTo(-2 * bL, 0.3 * bL)
-	cntxt.lineTo(-2 * bL, -0.3 * bL)
-	cntxt.lineTo(0, -0.75 * bL)
-	cntxt.lineTo(0, 0.75 * bL)
-	cntxt.fillStyle = 'black'
+	cntxt.moveTo(-bGC, bDimB2 / 2)
+	cntxt.lineTo(-bDimH - bGC, bDimB1 / 2)
+	cntxt.lineTo(-bDimH - bGC, -bDimB1 / 2)
+	cntxt.lineTo(-bGC, -bDimB2 / 2)
+	cntxt.lineTo(-bGC, bDimB2 / 2)
+	cntxt.fillStyle = '#333'
 	cntxt.fill()
 	cntxt.restore()
-
-	// Draw balls
-	for (let ball of balls) {
-		cntxt.beginPath()
-		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
-		cntxt.fillStyle = '#D6EC1B'
-		cntxt.fill()
-	}
 
 	// Find closest ball
 	let bestBall = null,
@@ -91,23 +104,48 @@ function draw() {
 			bestBall = ball
 		}
 	}
-
-	// Go for it
 	if (bestBall) {
-		if (bestDist < 0.1) {
+		if (bestDist < 1e-4) {
 			// Grab it
 			balls.splice(balls.indexOf(bestBall), 1)
-		} else {
-			let ang = Math.atan2(bestBall.y - bY, bestBall.x - bX),
-				v = Math.min(1, bestDist)
-			bX += v * Math.cos(ang)
-			bY += v * Math.sin(ang)
-			bA = ang
+		} else if (bestBall.x !== bTX && bestBall.y !== bTY) {
+			// Got for it
+			bTX = bestBall.x
+			bTY = bestBall.y
+			bM = 'angle'
 		}
 	}
+
+	// Update bot
+	if (bM === 'angle') {
+		let ang = Math.atan2(bTY - bY, bTX - bX),
+			deltaAng = ang - bA
+		if (deltaAng > Math.PI) {
+			deltaAng = deltaAng - 2 * Math.PI
+		} else if (deltaAng < -Math.PI) {
+			deltaAng = deltaAng + 2 * Math.PI
+		}
+		let maxStep = bS / bDimB2 * dt
+		if (Math.abs(deltaAng) > maxStep) {
+			deltaAng = Math.sign(deltaAng) * maxStep
+		}
+		bA += deltaAng
+		if (Math.abs(deltaAng) < 1e-4) {
+			bM = 'position'
+		}
+	} else if (bM === 'position') {
+		let dx = bTX - bX,
+			dy = bTY - bY,
+			ang = Math.atan2(dy, dx),
+			ds = Math.min(bS * dt, Math.sqrt(dx * dx + dy * dy))
+		bX += ds * Math.cos(ang)
+		bY += ds * Math.sin(ang)
+	}
+
+	lastFrame = now
 }
 
-setInterval(draw, 1e3)
+setInterval(draw, 1e2)
 
 canvas.onclick = event => {
 	let targetRect = event.currentTarget.getBoundingClientRect(),
