@@ -11,7 +11,8 @@ let canvas = document.getElementById('canvas'),
 	D = [100, 200],
 	anchors = [A, B, C, D],
 	dragging = null,
-	pixels = null
+	pixels = null,
+	playing = true
 
 navigator.mediaDevices.getUserMedia({
 	video: true
@@ -21,8 +22,18 @@ navigator.mediaDevices.getUserMedia({
 		canvas.width = canvas2.width = video.videoWidth
 		canvas.height = canvas2.height = video.videoHeight
 		video.play()
+		playing = true
 	}
 })
+
+document.getElementById('playPause').onclick = () => {
+	playing = !playing
+	if (playing) {
+		video.play()
+	} else {
+		video.pause()
+	}
+}
 
 function draw() {
 	// Update original canvas
