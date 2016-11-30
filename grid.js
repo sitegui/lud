@@ -1,6 +1,6 @@
 function make_grid(sizex, sizey, unit_size){
-	var gxsize = Math.ceil(sizex/unit_size);
-	var gysize = Math.ceil(sizey/unit_size);
+	var gxsize = Math.ceil(sizex/unit_size) + 1;
+	var gysize = Math.ceil(sizey/unit_size) + 1;
 	var grid = new Array(gxsize);
 	
 	for (var i=0; i<gxsize; i++){
@@ -33,7 +33,11 @@ function make_grid(sizex, sizey, unit_size){
     
     	grid.show = function(){
     		for(var i = 0; i < this.length; i++){
-        		console.log(this[i]);
+			s = ''
+			for (var j = 0; j < this[i].length; j++){
+				s = s + this[i][j] + ' '
+			}
+        		console.log(s);
         	}
     	};
 
@@ -185,13 +189,13 @@ function make_grid(sizex, sizey, unit_size){
 					var c = current
 					var path = []
 					while (c != undefined){
-						path.push(c)
+						path.push([c[0]*this.unit_size, c[1]*this.unit_size])
 						if (this[c[0]][c[1]] == 0){
 							this[c[0]][c[1]] = 9
 						}
 						c = cameFrom[c[0]][c[1]]
 					}
-					return [current, path] ;
+					return [[current[0]*this.unit_size, current[1]*this.unit_size], path] ;
 				}
 			}
 	
