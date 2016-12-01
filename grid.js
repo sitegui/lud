@@ -7,7 +7,7 @@
  * 3. Display to insert the result in a comment after the selection. (Cmd-L)
  */
 
-function make_grid(sizex, sizey, unit_size) {
+function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 	var gxsize = Math.ceil(sizex / unit_size) + 1;
 	var gysize = Math.ceil(sizey / unit_size) + 1;
 	var grid = new Array(gxsize);
@@ -21,9 +21,12 @@ function make_grid(sizex, sizey, unit_size) {
 
 	grid.sizex = sizex;
 	grid.sizey = sizey;
+	grid.center = [centerx, centery]
 	grid.unit_size = unit_size;
 
 	grid.add_obs = function (posx, posy, r) {
+		posx = posx + this.center[0]
+		posy = posy + this.center[1]
 		var x = Math.round(posx / this.unit_size);
 		var y = Math.round(posy / this.unit_size);
 		var d = Math.ceil(r / this.unit_size);
@@ -83,6 +86,8 @@ function make_grid(sizex, sizey, unit_size) {
 
 	grid.robot_pos = [0, 0];
 	grid.place_robot = function (posx, posy) {
+		posx = posx + this.center[0]
+		posy = posy + this.center[1]
 		var rx = Math.round(posx / this.unit_size);
 		var ry = Math.round(posy / this.unit_size);
 		for (var i = 0; i < this.length; i++) {
@@ -104,6 +109,8 @@ function make_grid(sizex, sizey, unit_size) {
 
 	grid.ball_pos = [];
 	grid.add_ball = function (posx, posy) {
+		posx = posx + this.center[0]
+		posy = posy + this.center[1]
 		var bx = Math.round(posx / this.unit_size);
 		var by = Math.round(posy / this.unit_size);
 		if (this[bx][by] === 0) {
@@ -113,6 +120,10 @@ function make_grid(sizex, sizey, unit_size) {
 	};
 
 	grid.astar = function () {
+		res = this._astar()
+		if (res == undefined){
+			return [undefined, [[this.robot_pos[0]*this.unit_size - this.center[0], this.robot_pos[1]*this.unit_size - this.center[1]]]]
+		}
 		[ball, path] = this._astar()
 
 		function line_obs(p1, p2){
@@ -168,13 +179,13 @@ function make_grid(sizex, sizey, unit_size) {
 		}
 
 		path = xxx(path,line_obs)
-		ball[0] = ball[0]*this.unit_size
-		ball[1] = ball[1]*this.unit_size
+		ball[0] = ball[0]*this.unit_size - this.center[0]
+		ball[1] = ball[1]*this.unit_size - this.center[1]
 		
 		for (var i = 0; i < path.length; i++){
-			path[i] = [path[i][0]*this.unit_size, path[i][1]*this.unit_size]
+			path[i] = [path[i][0]*this.unit_size - this.center[0], path[i][1]*this.unit_size - this.center[1]]
 		}
-		return [ball, path]
+		return [ball, path.reverse()]
 
 	}
 

@@ -29,7 +29,9 @@ let canvas = document.getElementById('canvas'),
 	tBR = 0.0651 / 2,
 	// List of balls in the ground
 	// Array of {x, y}
-	balls = []
+	balls = [],
+	// Grid for paths calc
+	grid = make_grid(rW, rH, bDimB1/3, rW/2, rH/2)
 
 canvas.width = vW
 canvas.height = vH
@@ -43,6 +45,9 @@ cntxt.translate(vW / 2, vH / 2)
 cntxt.scale(prop, -prop)
 
 function draw() {
+
+	grid.reset()
+
 	let now = Date.now(),
 		dt = (Date.now() - lastFrame) / 1e3
 	cntxt.fillStyle = '#A44C48'
@@ -76,6 +81,8 @@ function draw() {
 		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
 		cntxt.fillStyle = '#c5d823'
 		cntxt.fill()
+
+		grid.add_ball(ball.x, ball.y)
 	}
 
 	// Draw bot
@@ -92,27 +99,35 @@ function draw() {
 	cntxt.fill()
 	cntxt.restore()
 
-	// Find closest ball
-	let bestBall = null,
-		bestDist = Infinity
-	for (let ball of balls) {
-		let dx = bX - ball.x,
-			dy = bY - ball.y,
-			dist = Math.sqrt(dx * dx + dy * dy)
-		if (dist < bestDist) {
-			bestDist = dist
-			bestBall = ball
-		}
+	grid.place_robot(bX,bY)
+	var ballPos
+	var path	
+	[ballPos, path] = grid.astar()
+	var nextP
+	nextP = path.length > 1 ? path[1] : path[0]
+
+	if (bTX != nextP[0] || bTY != nextP[1]){
+		bTX = nextP[0]
+		bTY = nextP[1]
+		bM = 'angle'
 	}
-	if (bestBall) {
-		if (bestDist < 1e-4) {
-			// Grab it
-			balls.splice(balls.indexOf(bestBall), 1)
-		} else if (bestBall.x !== bTX && bestBall.y !== bTY) {
-			// Got for it
-			bTX = bestBall.x
-			bTY = bestBall.y
-			bM = 'angle'
+
+	if (bTX == bX && bTY == bY){
+	// Find closest ball
+       		let bestBall = null,
+               	bestDist = Infinity
+       		for (let ball of balls) {
+               		let dx = bX - ball.x,
+                       	dy = bY - ball.y,
+                       	dist = Math.sqrt(dx * dx + dy * dy)
+               		if (dist < bestDist) {
+                      		 bestDist = dist
+                       		bestBall = ball
+               		}
+       		}
+       		if (bestBall) {
+                       // Grab it
+                       balls.splice(balls.indexOf(bestBall), 1)
 		}
 	}
 
