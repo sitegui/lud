@@ -11,8 +11,8 @@ let canvas = document.getElementById('canvas'),
 	oR = Math.sqrt(rW * rH) * 2 / 100,
 	cntxt = canvas.getContext('2d'),
 	// Bot position
-	bX = 0,
-	bY = 0,
+	bX = -23.77 / 3,
+	bY = 10.97 / 3,
 	// Bot angle (radians)
 	bA = 0,
 	// Bot size (a trapezoid, with bases bDimB1, bDimB2 and height bDimH)
@@ -91,6 +91,7 @@ function draw() {
 
 		grid.addObs(ob.x, ob.y, ob.r)
 	}
+	grid.addVerticalObs(0, -8.23 / 2, 8.23 / 2)
 
 	grid.prepare(bR)
 
@@ -120,16 +121,18 @@ function draw() {
 
 	grid.placeRobot(bX, bY)
 	if (!path) {
-		let [, newPath, newOriginalPath] = grid.astar()
-		path = newPath
-		originalPath = newOriginalPath
-		if (path.length > 1) {
-			path.shift()
+		let [ballPos, newPath, newOriginalPath] = grid.astar()
+		if (ballPos) {
+			path = newPath
+			originalPath = newOriginalPath
+			if (path.length > 1) {
+				path.shift()
+			}
+			let nextP = path.shift()
+			bTX = nextP[0]
+			bTY = nextP[1]
+			bM = 'angle'
 		}
-		let nextP = path.shift()
-		bTX = nextP[0]
-		bTY = nextP[1]
-		bM = 'angle'
 	}
 
 	// Update bot

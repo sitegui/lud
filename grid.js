@@ -53,6 +53,27 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 		}
 	}
 
+	/**
+	 * Add a vertical obstacle, setting all grid tiles that intersect
+	 * with it as blocked
+	 * @param {number} posx
+	 * @param {number} minY
+	 * @param {number} maxY
+	 */
+	grid.addVerticalObs = function (posX, minY, maxY) {
+		posX = posX + this.center[0]
+		minY = minY + this.center[1]
+		maxY = maxY + this.center[1]
+
+		posX = Math.round(posX / this.unitSize)
+		minY = Math.round(minY / this.unitSize)
+		maxY = Math.round(maxY / this.unitSize)
+
+		for (let y = minY; y <= maxY; y++) {
+			this[posX][y] = 2
+		}
+	}
+
 	grid.show = function () {
 		for (let i = 0; i < this.length; i++) {
 			let s = ''
