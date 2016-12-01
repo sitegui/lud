@@ -7,6 +7,7 @@ let canvas = document.getElementById('canvas'),
 	// Real size (in meters)
 	rW = 25,
 	rH = 12,
+	oR = Math.sqrt(rW*rH)*2/100,
 	cntxt = canvas.getContext('2d'),
 	// Bot position
 	bX = 0,
@@ -30,8 +31,10 @@ let canvas = document.getElementById('canvas'),
 	// List of balls in the ground
 	// Array of {x, y}
 	balls = [],
+	// {x,y r}
+	obs = [],
 	// Grid for paths calc
-	grid = make_grid(rW, rH, bDimB1/3, rW/2, rH/2)
+	grid = make_grid(rW, rH, 0.5, rW/2, rH/2)
 
 canvas.width = vW
 canvas.height = vH
@@ -85,6 +88,18 @@ function draw() {
 		grid.add_ball(ball.x, ball.y)
 	}
 
+	//Draw obs
+	for (let ob of obs){
+		cntxt.beginPath()
+                cntxt.arc(ob.x, ob.y, 2 * ob.r, 0, 2 * Math.PI)
+                cntxt.fillStyle = '#cccccc'
+                cntxt.fill()
+
+                grid.add_obs(ob.x, ob.y, ob.r)
+	}
+
+	grid.prepare(0.5)
+
 	// Draw bot
 	cntxt.save()
 	cntxt.translate(bX, bY)
@@ -112,7 +127,7 @@ function draw() {
 		bM = 'angle'
 	}
 
-	if (bTX == bX && bTY == bY){
+	if (bTX == bX && bTY == bY && ballPos){
 	// Find closest ball
        		let bestBall = null,
                	bestDist = Infinity
@@ -130,7 +145,7 @@ function draw() {
                        balls.splice(balls.indexOf(bestBall), 1)
 		}
 	}
-
+	
 	// Update bot
 	if (bM === 'angle') {
 		let ang = Math.atan2(bTY - bY, bTX - bX),
@@ -155,6 +170,10 @@ function draw() {
 			ds = Math.min(bS * dt, Math.sqrt(dx * dx + dy * dy))
 		bX += ds * Math.cos(ang)
 		bY += ds * Math.sin(ang)
+		if ((bX - bTX)*(bX - bTX) + (bY - bTY)*(bY - bTY) < ds*ds){
+			bX = bTX
+			bY = bTY
+		}
 	}
 
 	lastFrame = now
@@ -167,9 +186,16 @@ canvas.onclick = event => {
 	let targetRect = event.currentTarget.getBoundingClientRect(),
 		left = event.clientX - targetRect.left,
 		top = event.clientY - targetRect.top
-
-	balls.push({
-		x: (left - vW / 2) / prop,
-		y: -(top - vH / 2) / prop
-	})
+	if (!event.shiftKey){
+		balls.push({
+			x: (left - vW / 2) / prop,
+			y: -(top - vH / 2) / prop
+		})
+	} else {
+		obs.push({
+			x: (left - vW / 2) / prop,
+			y: -(top - vH / 2) / prop,
+			r: oR
+		})
+	}
 }
