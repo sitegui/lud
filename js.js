@@ -123,10 +123,8 @@ function draw() {
 	cntxt.restore()
 
 	grid.placeRobot(bX, bY)
-	var ballPos
-	var path[ballPos, path] = grid.astar()
-	var nextP
-	nextP = path.length > 1 ? path[1] : path[0]
+	let [ballPos, path] = grid.astar(),
+		nextP = path.length > 1 ? path[1] : path[0]
 
 	if (bTX !== nextP[0] || bTY !== nextP[1]) {
 		bTX = nextP[0]

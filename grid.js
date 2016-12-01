@@ -77,7 +77,7 @@ function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
 	};
 
 	grid.robot_pos = [0, 0];
-	grid.place_robot = function (posx, posy) {
+	grid.placeRobot = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
 		var rx = Math.round(posx / this.unit_size);
