@@ -1,3 +1,4 @@
+/*global makeGrid*/
 'use strict'
 
 let canvas = document.getElementById('canvas'),
@@ -7,7 +8,7 @@ let canvas = document.getElementById('canvas'),
 	// Real size (in meters)
 	rW = 25,
 	rH = 12,
-	oR = Math.sqrt(rW*rH)*2/100,
+	oR = Math.sqrt(rW * rH) * 2 / 100,
 	cntxt = canvas.getContext('2d'),
 	// Bot position
 	bX = 0,
@@ -35,7 +36,7 @@ let canvas = document.getElementById('canvas'),
 	// {x,y r}
 	obs = [],
 	// Grid for paths calc
-	grid = make_grid(rW, rH, 0.25, rW/2, rH/2)
+	grid = makeGrid(rW, rH, 0.25, rW / 2, rH / 2)
 
 canvas.width = vW
 canvas.height = vH
@@ -80,34 +81,32 @@ function draw() {
 	cntxt.stroke()
 
 	//Draw obs
-	for (let ob of obs){
-
-
-		cntxt.beginPath()
-                cntxt.arc(ob.x, ob.y, 2 * (ob.r + bR/2), 0, 2 * Math.PI)
-                cntxt.fillStyle = '#ffcccc'
-                cntxt.fill()
+	for (let ob of obs) {
 
 		cntxt.beginPath()
-                cntxt.arc(ob.x, ob.y, 2 * ob.r, 0, 2 * Math.PI)
-                cntxt.fillStyle = '#cccccc'
-                cntxt.fill()
+		cntxt.arc(ob.x, ob.y, 2 * (ob.r + bR / 2), 0, 2 * Math.PI)
+		cntxt.fillStyle = '#ffcccc'
+		cntxt.fill()
 
-                grid.add_obs(ob.x, ob.y, ob.r)
+		cntxt.beginPath()
+		cntxt.arc(ob.x, ob.y, 2 * ob.r, 0, 2 * Math.PI)
+		cntxt.fillStyle = '#cccccc'
+		cntxt.fill()
+
+		grid.addObs(ob.x, ob.y, ob.r)
 	}
 
 	grid.prepare(bR)
 
 	// Draw balls
-        for (let ball of balls) {
-                cntxt.beginPath()
-                cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
-                cntxt.fillStyle = '#c5d823'
-                cntxt.fill()
+	for (let ball of balls) {
+		cntxt.beginPath()
+		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
+		cntxt.fillStyle = '#c5d823'
+		cntxt.fill()
 
-                grid.add_ball(ball.x, ball.y)
-        }
-
+		grid.addBall(ball.x, ball.y)
+	}
 
 	// Draw bot
 	cntxt.save()
@@ -123,38 +122,37 @@ function draw() {
 	cntxt.fill()
 	cntxt.restore()
 
-	grid.place_robot(bX,bY)
+	grid.placeRobot(bX, bY)
 	var ballPos
-	var path	
-	[ballPos, path] = grid.astar()
+	var path[ballPos, path] = grid.astar()
 	var nextP
 	nextP = path.length > 1 ? path[1] : path[0]
 
-	if (bTX != nextP[0] || bTY != nextP[1]){
+	if (bTX !== nextP[0] || bTY !== nextP[1]) {
 		bTX = nextP[0]
 		bTY = nextP[1]
 		bM = 'angle'
 	}
 
-	if (bTX == bX && bTY == bY && ballPos){
-	// Find closest ball
-       		let bestBall = null,
-               	bestDist = Infinity
-       		for (let ball of balls) {
-               		let dx = bX - ball.x,
-                       	dy = bY - ball.y,
-                       	dist = Math.sqrt(dx * dx + dy * dy)
-               		if (dist < bestDist) {
-                      		 bestDist = dist
-                       		bestBall = ball
-               		}
-       		}
-       		if (bestBall) {
-                       // Grab it
-                       balls.splice(balls.indexOf(bestBall), 1)
+	if (bTX === bX && bTY === bY && ballPos) {
+		// Find closest ball
+		let bestBall = null,
+			bestDist = Infinity
+		for (let ball of balls) {
+			let dx = bX - ball.x,
+				dy = bY - ball.y,
+				dist = Math.sqrt(dx * dx + dy * dy)
+			if (dist < bestDist) {
+				bestDist = dist
+				bestBall = ball
+			}
+		}
+		if (bestBall) {
+			// Grab it
+			balls.splice(balls.indexOf(bestBall), 1)
 		}
 	}
-	
+
 	// Update bot
 	if (bM === 'angle') {
 		let ang = Math.atan2(bTY - bY, bTX - bX),
@@ -179,7 +177,7 @@ function draw() {
 			ds = Math.min(bS * dt, Math.sqrt(dx * dx + dy * dy))
 		bX += ds * Math.cos(ang)
 		bY += ds * Math.sin(ang)
-		if ((bX - bTX)*(bX - bTX) + (bY - bTY)*(bY - bTY) < ds*ds){
+		if ((bX - bTX) * (bX - bTX) + (bY - bTY) * (bY - bTY) < ds * ds) {
 			bX = bTX
 			bY = bTY
 		}
@@ -194,16 +192,16 @@ requestAnimationFrame(draw)
 canvas.onclick = event => {
 	let targetRect = event.currentTarget.getBoundingClientRect(),
 		left = event.clientX - targetRect.left,
-		top = event.clientY - targetRect.top
-	if (!event.shiftKey){
+		topPos = event.clientY - targetRect.top
+	if (!event.shiftKey) {
 		balls.push({
 			x: (left - vW / 2) / prop,
-			y: -(top - vH / 2) / prop
+			y: -(topPos - vH / 2) / prop
 		})
 	} else {
 		obs.push({
 			x: (left - vW / 2) / prop,
-			y: -(top - vH / 2) / prop,
+			y: -(topPos - vH / 2) / prop,
 			r: oR
 		})
 	}

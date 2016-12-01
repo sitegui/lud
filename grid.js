@@ -1,13 +1,4 @@
-/*
- * This is a JavaScript Scratchpad.
- *
- * Enter some JavaScript, then Right Click or choose from the Execute Menu:
- * 1. Run to evaluate the selected text (Cmd-R),
- * 2. Inspect to bring up an Object Inspector on the result (Cmd-I), or,
- * 3. Display to insert the result in a comment after the selection. (Cmd-L)
- */
-
-function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
+function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
 	var gxsize = Math.floor(sizex / unit_size) + 1;
 	var gysize = Math.floor(sizey / unit_size) + 1;
 	var grid = new Array(gxsize);
@@ -24,7 +15,7 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 	grid.unit_size = unit_size;
 	grid.r = 0;
 
-	grid.add_obs = function (posx, posy, r) {
+	grid.addObs = function (posx, posy, r) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
 		var x = Math.round(posx / this.unit_size);
@@ -104,89 +95,90 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 				break;
 			}
 		}
-		
+
 		this[rx][ry] = 3;
 		this.robot_pos = [rx, ry];
 	};
 
 	grid.ball_pos = [];
-	grid.add_ball = function (posx, posy) {
+	grid.addBall = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
 		var bx = Math.round(posx / this.unit_size);
 		var by = Math.round(posy / this.unit_size);
 		if (this[bx][by] === 0) {
 			this[bx][by] = 4;
-			this.ball_pos.push([bx,by]);
+			this.ball_pos.push([bx, by]);
 		}
-		
+
 	};
 
 	grid.astar = function () {
 		res = this._astar()
-		if (res == undefined){
-			return [undefined, [[this.robot_pos[0]*this.unit_size - this.center[0], this.robot_pos[1]*this.unit_size - this.center[1]]]]
+		if (res == undefined) {
+			return [undefined, [
+				[this.robot_pos[0] * this.unit_size - this.center[0], this.robot_pos[1] * this.unit_size - this.center[1]]
+			]]
 		}
 		[ball, path] = this._astar()
 
-		function line_obs(p1, p2){
+		function line_obs(p1, p2) {
 			var x1 = p1[0]
 			var x2 = p2[0]
 			var y1 = p1[1]
 			var y2 = p2[1]
-			if (x1 == x2){
-				var ymin = Math.min(y1,y2)
-				var ymax = Math.max(y1,y2)
-				for (var yi = ymin; yi <= ymax; yi++){
-					if (grid[x1][yi] == 1 || grid[x1][yi] == 2){
+			if (x1 == x2) {
+				var ymin = Math.min(y1, y2)
+				var ymax = Math.max(y1, y2)
+				for (var yi = ymin; yi <= ymax; yi++) {
+					if (grid[x1][yi] == 1 || grid[x1][yi] == 2) {
 						return true
 					}
-				} 
-			}
-			else {
-				var ys = y2-y1
-				var xs = x2-x1
-				var xmin = Math.min(x1,x2)
-				var xmax = Math.max(x1,x2)
-				for (var xi = xmin; xi <= xmax; xi++){
-					var yp = Math.ceil(ys*((xi-x1)/xs)+y1)
-					var ym = Math.floor(ys*((xi-x1)/xs)+y1)
-					if (grid[xi][yp] == 1 || grid[xi][yp] == 2){
+				}
+			} else {
+				var ys = y2 - y1
+				var xs = x2 - x1
+				var xmin = Math.min(x1, x2)
+				var xmax = Math.max(x1, x2)
+				for (var xi = xmin; xi <= xmax; xi++) {
+					var yp = Math.ceil(ys * ((xi - x1) / xs) + y1)
+					var ym = Math.floor(ys * ((xi - x1) / xs) + y1)
+					if (grid[xi][yp] == 1 || grid[xi][yp] == 2) {
 						return true
-					} 
-					if (grid[xi][ym] == 1 || grid[xi][ym] == 2){
+					}
+					if (grid[xi][ym] == 1 || grid[xi][ym] == 2) {
 						return true
 					}
 				}
 			}
 			return false
 		}
-		
-		function xxx(path, comp){
-			if (path.length <= 1){
+
+		function xxx(path, comp) {
+			if (path.length <= 1) {
 				return path
 			}
 
 			var first = path[0]
 			var last = path[path.length - 1]
-			
-			if (comp(first,last)){
-				var index = Math.floor(path.length/2)
-				
-				return Array.concat(xxx(path.slice(0,index), comp), [path[index]], xxx(path.slice(index+1,path.length), comp))
-				
+
+			if (comp(first, last)) {
+				var index = Math.floor(path.length / 2)
+
+				return Array.concat(xxx(path.slice(0, index), comp), [path[index]], xxx(path.slice(index + 1, path.length), comp))
+
 			} else {
 				return [first, last]
 			}
-			
+
 		}
 
-		path = xxx(path,line_obs)
-		ball[0] = ball[0]*this.unit_size - this.center[0]
-		ball[1] = ball[1]*this.unit_size - this.center[1]
-		
-		for (var i = 0; i < path.length; i++){
-			path[i] = [path[i][0]*this.unit_size - this.center[0], path[i][1]*this.unit_size - this.center[1]]
+		path = xxx(path, line_obs)
+		ball[0] = ball[0] * this.unit_size - this.center[0]
+		ball[1] = ball[1] * this.unit_size - this.center[1]
+
+		for (var i = 0; i < path.length; i++) {
+			path[i] = [path[i][0] * this.unit_size - this.center[0], path[i][1] * this.unit_size - this.center[1]]
 		}
 		return [ball, path.reverse()]
 
@@ -326,4 +318,3 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 
 	return grid;
 }
-
