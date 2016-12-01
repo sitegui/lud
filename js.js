@@ -19,6 +19,7 @@ let canvas = document.getElementById('canvas'),
 	bDimB2 = 0.5,
 	bDimH = 0.75,
 	bGC = -(2 * bDimB1 * bDimH + bDimB2 * bDimH) / (3 * (bDimB1 + bDimB2)),
+	bR = 0.5,
 	// Bot wheel max speed (m/s)
 	bS = 1,
 	// Bot target
@@ -34,7 +35,7 @@ let canvas = document.getElementById('canvas'),
 	// {x,y r}
 	obs = [],
 	// Grid for paths calc
-	grid = make_grid(rW, rH, 0.5, rW/2, rH/2)
+	grid = make_grid(rW, rH, 0.25, rW/2, rH/2)
 
 canvas.width = vW
 canvas.height = vH
@@ -78,18 +79,15 @@ function draw() {
 	cntxt.strokeStyle = '#EEEEEE'
 	cntxt.stroke()
 
-	// Draw balls
-	for (let ball of balls) {
-		cntxt.beginPath()
-		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
-		cntxt.fillStyle = '#c5d823'
-		cntxt.fill()
-
-		grid.add_ball(ball.x, ball.y)
-	}
-
 	//Draw obs
 	for (let ob of obs){
+
+
+		cntxt.beginPath()
+                cntxt.arc(ob.x, ob.y, 2 * (ob.r + bR/2), 0, 2 * Math.PI)
+                cntxt.fillStyle = '#ffcccc'
+                cntxt.fill()
+
 		cntxt.beginPath()
                 cntxt.arc(ob.x, ob.y, 2 * ob.r, 0, 2 * Math.PI)
                 cntxt.fillStyle = '#cccccc'
@@ -98,7 +96,18 @@ function draw() {
                 grid.add_obs(ob.x, ob.y, ob.r)
 	}
 
-	grid.prepare(0.5)
+	grid.prepare(bR)
+
+	// Draw balls
+        for (let ball of balls) {
+                cntxt.beginPath()
+                cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
+                cntxt.fillStyle = '#c5d823'
+                cntxt.fill()
+
+                grid.add_ball(ball.x, ball.y)
+        }
+
 
 	// Draw bot
 	cntxt.save()

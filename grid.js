@@ -8,10 +8,9 @@
  */
 
 function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
-	var gxsize = Math.ceil(sizex / unit_size) + 1;
-	var gysize = Math.ceil(sizey / unit_size) + 1;
+	var gxsize = Math.floor(sizex / unit_size) + 1;
+	var gysize = Math.floor(sizey / unit_size) + 1;
 	var grid = new Array(gxsize);
-
 	for (var i = 0; i < gxsize; i++) {
 		grid[i] = new Array(gysize);
 		for (var j = 0; j < gysize; j++) {
@@ -23,6 +22,7 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 	grid.sizey = sizey;
 	grid.center = [centerx, centery]
 	grid.unit_size = unit_size;
+	grid.r = 0;
 
 	grid.add_obs = function (posx, posy, r) {
 		posx = posx + this.center[0]
@@ -65,6 +65,7 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 
 	grid.prepare = function (robotR) {
 		var gr = Math.ceil(robotR / this.unit_size);
+		this.r = gr;
 		for (var i = 0; i < this.length; i++) {
 			for (var j = 0; j < this[i].length; j++) {
 				if (this[i][j] == 1) {
@@ -103,6 +104,7 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 				break;
 			}
 		}
+		
 		this[rx][ry] = 3;
 		this.robot_pos = [rx, ry];
 	};
@@ -115,8 +117,9 @@ function make_grid(sizex, sizey, unit_size, centerx=0, centery=0) {
 		var by = Math.round(posy / this.unit_size);
 		if (this[bx][by] === 0) {
 			this[bx][by] = 4;
+			this.ball_pos.push([bx,by]);
 		}
-		this.ball_pos.push([bx, by]);
+		
 	};
 
 	grid.astar = function () {
