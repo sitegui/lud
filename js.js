@@ -98,8 +98,8 @@ function draw() {
 	// Draw balls
 	for (let ball of balls) {
 		cntxt.beginPath()
-		cntxt.arc(ball.x, ball.y, 2 * tBR, 0, 2 * Math.PI)
-		cntxt.fillStyle = '#c5d823'
+		cntxt.arc(ball.x, ball.y, 3 * tBR, 0, 2 * Math.PI)
+		cntxt.fillStyle = '#d823d1'
 		cntxt.fill()
 
 		grid.addBall(ball.x, ball.y)
