@@ -143,9 +143,10 @@ function draw() {
 	}
 
 	lastFrame = now
+	requestAnimationFrame(draw)
 }
 
-setInterval(draw, 1e2)
+requestAnimationFrame(draw)
 
 canvas.onclick = event => {
 	let targetRect = event.currentTarget.getBoundingClientRect(),
