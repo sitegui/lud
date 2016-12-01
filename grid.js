@@ -1,71 +1,73 @@
-function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
-	var gxsize = Math.floor(sizex / unit_size) + 1;
-	var gysize = Math.floor(sizey / unit_size) + 1;
-	var grid = new Array(gxsize);
-	for (var i = 0; i < gxsize; i++) {
-		grid[i] = new Array(gysize);
-		for (var j = 0; j < gysize; j++) {
-			grid[i][j] = 0;
+'use strict'
+
+function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
+	let gxsize = Math.floor(sizex / unitSize) + 1
+	let gysize = Math.floor(sizey / unitSize) + 1
+	let grid = new Array(gxsize)
+	for (let i = 0; i < gxsize; i++) {
+		grid[i] = new Array(gysize)
+		for (let j = 0; j < gysize; j++) {
+			grid[i][j] = 0
 		}
 	}
 
-	grid.sizex = sizex;
-	grid.sizey = sizey;
+	grid.sizex = sizex
+	grid.sizey = sizey
 	grid.center = [centerx, centery]
-	grid.unit_size = unit_size;
-	grid.r = 0;
+	grid.unitSize = unitSize
+	grid.r = 0
 
 	grid.addObs = function (posx, posy, r) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
-		var x = Math.round(posx / this.unit_size);
-		var y = Math.round(posy / this.unit_size);
-		var d = Math.ceil(r / this.unit_size);
-		for (var i = -d; i <= d; i++) {
-			for (var j = -d; j <= d; j++) {
+		let x = Math.round(posx / this.unitSize)
+		let y = Math.round(posy / this.unitSize)
+		let d = Math.ceil(r / this.unitSize)
+		for (let i = -d; i <= d; i++) {
+			for (let j = -d; j <= d; j++) {
 				if ((i + x >= 0) && (i + x < this.length)) {
 					if ((j + y >= 0) && (j + y < this[i + x].length)) {
 						if (i * i + j * j <= d * d) {
-							this[i + x][j + y] = 1;
+							this[i + x][j + y] = 1
 						}
 					}
 				}
 			}
 		}
-	};
+	}
 
 	grid.show = function () {
-		for (var i = 0; i < this.length; i++) {
-			s = ''
-			for (var j = 0; j < this[i].length; j++) {
+		for (let i = 0; i < this.length; i++) {
+			let s = ''
+			for (let j = 0; j < this[i].length; j++) {
 				s = s + this[i][j] + ' '
 			}
-			console.log(s);
+			console.log(s)
 		}
-	};
+	}
 
 	grid.reset = function () {
-		for (var i = 0; i < this.length; i++) {
-			for (var j = 0; j < this[i].length; j++) {
-				this[i][j] = 0;
+		for (let i = 0; i < this.length; i++) {
+			for (let j = 0; j < this[i].length; j++) {
+				this[i][j] = 0
 			}
 		}
-		this.robot_pos = [0, 0]
-		this.ball_pos = []
-	};
+		this.robotPos = [0, 0]
+		this.ballPos = []
+	}
 
 	grid.prepare = function (robotR) {
-		var gr = Math.ceil(robotR / this.unit_size);
-		this.r = gr;
-		for (var i = 0; i < this.length; i++) {
-			for (var j = 0; j < this[i].length; j++) {
-				if (this[i][j] == 1) {
-					for (var kx = -gr; kx <= gr; kx++) {
-						for (var ky = -gr; ky <= gr; ky++) {
+		let gr = Math.ceil(robotR / this.unitSize)
+		this.r = gr
+		for (let i = 0; i < this.length; i++) {
+			for (let j = 0; j < this[i].length; j++) {
+				if (this[i][j] === 1) {
+					for (let kx = -gr; kx <= gr; kx++) {
+						for (let ky = -gr; ky <= gr; ky++) {
 							if (i + kx >= 0 && i + kx < this.length) {
 								if (j + ky >= 0 && j + ky < this[i + kx].length) {
 									if (this[i + kx][j + ky] === 0) {
-										this[i + kx][j + ky] = 2;
+										this[i + kx][j + ky] = 2
 									}
 								}
 							}
@@ -74,79 +76,79 @@ function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
 				}
 			}
 		}
-	};
+	}
 
-	grid.robot_pos = [0, 0];
+	grid.robotPos = [0, 0]
 	grid.placeRobot = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
-		var rx = Math.round(posx / this.unit_size);
-		var ry = Math.round(posy / this.unit_size);
-		for (var i = 0; i < this.length; i++) {
-			var done = false;
-			for (var j = 0; j < this[i].length; j++) {
-				if (this[i][j] == 3) {
-					this[i][j] = 0;
-					done = true;
-					break;
+		let rx = Math.round(posx / this.unitSize)
+		let ry = Math.round(posy / this.unitSize)
+		for (let i = 0; i < this.length; i++) {
+			let done = false
+			for (let j = 0; j < this[i].length; j++) {
+				if (this[i][j] === 3) {
+					this[i][j] = 0
+					done = true
+					break
 				}
 			}
 			if (done) {
-				break;
+				break
 			}
 		}
 
-		this[rx][ry] = 3;
-		this.robot_pos = [rx, ry];
-	};
+		this[rx][ry] = 3
+		this.robotPos = [rx, ry]
+	}
 
-	grid.ball_pos = [];
+	grid.ballPos = []
 	grid.addBall = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
-		var bx = Math.round(posx / this.unit_size);
-		var by = Math.round(posy / this.unit_size);
+		let bx = Math.round(posx / this.unitSize)
+		let by = Math.round(posy / this.unitSize)
 		if (this[bx][by] === 0) {
-			this[bx][by] = 4;
-			this.ball_pos.push([bx, by]);
+			this[bx][by] = 4
+			this.ballPos.push([bx, by])
 		}
 
-	};
+	}
 
 	grid.astar = function () {
-		res = this._astar()
-		if (res == undefined) {
+		let res = this._astar()
+		if (res === undefined) {
 			return [undefined, [
-				[this.robot_pos[0] * this.unit_size - this.center[0], this.robot_pos[1] * this.unit_size - this.center[1]]
+				[this.robotPos[0] * this.unitSize - this.center[0], this.robotPos[1] * this.unitSize - this.center[1]]
 			]]
 		}
-		[ball, path] = this._astar()
+		let [ball, path] = this._astar()
 
-		function line_obs(p1, p2) {
-			var x1 = p1[0]
-			var x2 = p2[0]
-			var y1 = p1[1]
-			var y2 = p2[1]
-			if (x1 == x2) {
-				var ymin = Math.min(y1, y2)
-				var ymax = Math.max(y1, y2)
-				for (var yi = ymin; yi <= ymax; yi++) {
-					if (grid[x1][yi] == 1 || grid[x1][yi] == 2) {
+		function lineObs(p1, p2) {
+			let x1 = p1[0]
+			let x2 = p2[0]
+			let y1 = p1[1]
+			let y2 = p2[1]
+			if (x1 === x2) {
+				let ymin = Math.min(y1, y2)
+				let ymax = Math.max(y1, y2)
+				for (let yi = ymin; yi <= ymax; yi++) {
+					if (grid[x1][yi] === 1 || grid[x1][yi] === 2) {
 						return true
 					}
 				}
 			} else {
-				var ys = y2 - y1
-				var xs = x2 - x1
-				var xmin = Math.min(x1, x2)
-				var xmax = Math.max(x1, x2)
-				for (var xi = xmin; xi <= xmax; xi++) {
-					var yp = Math.ceil(ys * ((xi - x1) / xs) + y1)
-					var ym = Math.floor(ys * ((xi - x1) / xs) + y1)
-					if (grid[xi][yp] == 1 || grid[xi][yp] == 2) {
+				let ys = y2 - y1
+				let xs = x2 - x1
+				let xmin = Math.min(x1, x2)
+				let xmax = Math.max(x1, x2)
+				for (let xi = xmin; xi <= xmax; xi++) {
+					let yp = Math.ceil(ys * ((xi - x1) / xs) + y1)
+					let ym = Math.floor(ys * ((xi - x1) / xs) + y1)
+					if (grid[xi][yp] === 1 || grid[xi][yp] === 2) {
 						return true
 					}
-					if (grid[xi][ym] == 1 || grid[xi][ym] == 2) {
+					if (grid[xi][ym] === 1 || grid[xi][ym] === 2) {
 						return true
 					}
 				}
@@ -159,11 +161,11 @@ function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
 				return path
 			}
 
-			var first = path[0]
-			var last = path[path.length - 1]
+			let first = path[0]
+			let last = path[path.length - 1]
 
 			if (comp(first, last)) {
-				var index = Math.floor(path.length / 2)
+				let index = Math.floor(path.length / 2)
 
 				return Array.concat(xxx(path.slice(0, index), comp), [path[index]], xxx(path.slice(index + 1, path.length), comp))
 
@@ -173,148 +175,148 @@ function makeGrid(sizex, sizey, unit_size, centerx = 0, centery = 0) {
 
 		}
 
-		path = xxx(path, line_obs)
-		ball[0] = ball[0] * this.unit_size - this.center[0]
-		ball[1] = ball[1] * this.unit_size - this.center[1]
+		path = xxx(path, lineObs)
+		ball[0] = ball[0] * this.unitSize - this.center[0]
+		ball[1] = ball[1] * this.unitSize - this.center[1]
 
-		for (var i = 0; i < path.length; i++) {
-			path[i] = [path[i][0] * this.unit_size - this.center[0], path[i][1] * this.unit_size - this.center[1]]
+		for (let i = 0; i < path.length; i++) {
+			path[i] = [path[i][0] * this.unitSize - this.center[0], path[i][1] * this.unitSize - this.center[1]]
 		}
 		return [ball, path.reverse()]
 
 	}
 
 	grid._astar = function () {
-		var closedSet = new Array(this.length);
-		for (var i = 0; i < closedSet.length; i++) {
-			closedSet[i] = new Array(this[i].length);
-			for (var j = 0; j < closedSet[i].length; j++) {
-				closedSet[i][j] = false;
+		let closedSet = new Array(this.length)
+		for (let i = 0; i < closedSet.length; i++) {
+			closedSet[i] = new Array(this[i].length)
+			for (let j = 0; j < closedSet[i].length; j++) {
+				closedSet[i][j] = false
 			}
 		}
-		var openSet = [this.robot_pos];
+		let openSet = [this.robotPos]
 
-		var cameFrom = new Array(this.length);
-		for (var i = 0; i < cameFrom.length; i++) {
-			cameFrom[i] = new Array(this[i].length);
+		let cameFrom = new Array(this.length)
+		for (let i = 0; i < cameFrom.length; i++) {
+			cameFrom[i] = new Array(this[i].length)
 		}
 
-		var gScore = new Array(this.length);
-		for (var i = 0; i < gScore.length; i++) {
-			gScore[i] = new Array(this[i].length);
-			for (var j = 0; j < gScore[i].length; j++) {
-				gScore[i][j] = Infinity;
+		let gScore = new Array(this.length)
+		for (let i = 0; i < gScore.length; i++) {
+			gScore[i] = new Array(this[i].length)
+			for (let j = 0; j < gScore[i].length; j++) {
+				gScore[i][j] = Infinity
 			}
 		}
-		gScore[this.robot_pos[0]][this.robot_pos[1]] = 0;
+		gScore[this.robotPos[0]][this.robotPos[1]] = 0
 
 		function lower(score, set) {
-			var dot = [];
-			var min = Infinity;
-			var index = 0;
-			for (var i = 0; i < set.length; i++) {
+			let dot = []
+			let min = Infinity
+			let index = 0
+			for (let i = 0; i < set.length; i++) {
 				if (score[set[i][0]][set[i][1]] < min) {
-					min = score[set[i][0]][set[i][1]];
-					dot = [set[i][0], set[i][1]];
-					index = i;
+					min = score[set[i][0]][set[i][1]]
+					dot = [set[i][0], set[i][1]]
+					index = i
 				}
 			}
 
-			return [dot, index];
+			return [dot, index]
 		}
 
-		function neib(dot, maxx, maxy, grid) {
-			var n = [];
-			var xmo = ((dot[0] - 1) >= 0);
-			var xpo = ((dot[0] + 1) < maxx);
-			var ymo = ((dot[1] - 1) >= 0);
-			var ypo = ((dot[1] + 1) < maxy);
+		function neib(dot, maxx, maxy) {
+			let n = []
+			let xmo = ((dot[0] - 1) >= 0)
+			let xpo = ((dot[0] + 1) < maxx)
+			let ymo = ((dot[1] - 1) >= 0)
+			let ypo = ((dot[1] + 1) < maxy)
 
 			if (xmo) {
-				n.push([dot[0] - 1, dot[1]]);
+				n.push([dot[0] - 1, dot[1]])
 				if (ymo) {
-					n.push([dot[0] - 1, dot[1] - 1]);
+					n.push([dot[0] - 1, dot[1] - 1])
 				}
 				if (ypo) {
-					n.push([dot[0] - 1, dot[1] + 1]);
+					n.push([dot[0] - 1, dot[1] + 1])
 				}
 			}
 			if (ymo) {
-				n.push([dot[0], dot[1] - 1]);
+				n.push([dot[0], dot[1] - 1])
 			}
 			if (ypo) {
-				n.push([dot[0], dot[1] + 1]);
+				n.push([dot[0], dot[1] + 1])
 			}
 			if (xpo) {
-				n.push([dot[0] + 1, dot[1]]);
+				n.push([dot[0] + 1, dot[1]])
 				if (ymo) {
-					n.push([dot[0] + 1, dot[1] - 1]);
+					n.push([dot[0] + 1, dot[1] - 1])
 				}
 				if (ypo) {
-					n.push([dot[0] + 1, dot[1] + 1]);
+					n.push([dot[0] + 1, dot[1] + 1])
 				}
 			}
 
-			return n;
+			return n
 		}
 
 		while (openSet.length > 0) {
-			var currentA = lower(gScore, openSet);
-			var current = currentA[0];
-			var index = currentA[1];
+			let currentA = lower(gScore, openSet)
+			let current = currentA[0]
+			let index = currentA[1]
 
-			for (var i = 0; i < this.ball_pos.length; i++) {
-				if (this.ball_pos[i][0] == current[0] && this.ball_pos[i][1] == current[1]) {
-					var c = current
-					var path = []
-					while (c != undefined) {
+			for (let i = 0; i < this.ballPos.length; i++) {
+				if (this.ballPos[i][0] === current[0] && this.ballPos[i][1] === current[1]) {
+					let c = current
+					let path = []
+					while (c !== undefined) {
 						path.push([c[0], c[1]])
-						if (this[c[0]][c[1]] == 0) {
+						if (this[c[0]][c[1]] === 0) {
 							this[c[0]][c[1]] = 9
 						}
 						c = cameFrom[c[0]][c[1]]
 					}
 					return [
 						[current[0], current[1]], path
-					];
+					]
 				}
 			}
 
-			openSet.splice(index, 1);
-			closedSet[current[0]][current[1]] = true;
+			openSet.splice(index, 1)
+			closedSet[current[0]][current[1]] = true
 
-			var neibs = neib(current, this.length, this[0].length);
-			for (var i = 0; i < neibs.length; i++) {
-				if (this[neibs[i][0]][neibs[i][1]] == 2 || this[neibs[i][0]][neibs[i][1]] == 1) {
-					continue;
+			let neibs = neib(current, this.length, this[0].length)
+			for (let i = 0; i < neibs.length; i++) {
+				if (this[neibs[i][0]][neibs[i][1]] === 2 || this[neibs[i][0]][neibs[i][1]] === 1) {
+					continue
 				}
 				if (closedSet[neibs[i][0]][neibs[i][1]]) {
-					continue;
+					continue
 				}
 
-				dista = 1
-				if (neibs[i][0] != current[0] && neibs[i][2] != current[1]) {
+				let dista = 1
+				if (neibs[i][0] !== current[0] && neibs[i][2] !== current[1]) {
 					dista = 1.41
 				}
-				tscore = gScore[current[0]][current[1]] + dista;
-				var neibInOpen = false;
-				for (var k = 0; k < openSet.length; k++) {
-					if (openSet[k][0] == neibs[i][0] && openSet[k][1] == neibs[i][1]) {
-						neibInOpen = true;
-						break;
+				let tscore = gScore[current[0]][current[1]] + dista
+				let neibInOpen = false
+				for (let k = 0; k < openSet.length; k++) {
+					if (openSet[k][0] === neibs[i][0] && openSet[k][1] === neibs[i][1]) {
+						neibInOpen = true
+						break
 					}
 				}
 				if (!neibInOpen) {
-					openSet.push(neibs[i]);
+					openSet.push(neibs[i])
 				} else if (tscore >= gScore[neibs[i][0]][neibs[i][1]]) {
-					continue;
+					continue
 				}
 
-				cameFrom[neibs[i][0]][neibs[i][1]] = [current[0], current[1]];
-				gScore[neibs[i][0]][neibs[i][1]] = tscore;
+				cameFrom[neibs[i][0]][neibs[i][1]] = [current[0], current[1]]
+				gScore[neibs[i][0]][neibs[i][1]] = tscore
 			}
 		}
 	}
 
-	return grid;
+	return grid
 }
