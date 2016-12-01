@@ -5,26 +5,42 @@ let canvas = document.getElementById('canvas'),
 	video = document.createElement('video'),
 	cntxt = canvas.getContext('2d'),
 	cntxt2 = canvas2.getContext('2d'),
-	A = [100, 100],
-	B = [200, 100],
-	C = [200, 200],
-	D = [100, 200],
+	A = [80, 80],
+	B = [160, 80],
+	C = [160, 160],
+	D = [80, 160],
 	anchors = [A, B, C, D],
 	dragging = null,
 	pixels = null,
-	playing = true
+	playing = true,
+	img = new Image,
+	useWebCam = false
 
-navigator.mediaDevices.getUserMedia({
-	video: true
-}).then(stream => {
-	video.srcObject = stream
-	video.onloadedmetadata = () => {
-		canvas.width = canvas2.width = video.videoWidth
-		canvas.height = canvas2.height = video.videoHeight
-		video.play()
+img.src = 'canvas.jpeg'
+
+if (useWebCam) {
+	navigator.mediaDevices.getUserMedia({
+		video: true
+	}).then(stream => {
+		video.srcObject = stream
+		video.onloadedmetadata = () => {
+			canvas.width = video.videoWidth / 2
+			canvas.height = video.videoHeight / 2
+			canvas.style.width = video.videoWidth + 'px'
+			canvas.style.height = video.videoHeight + 'px'
+			video.play()
+			playing = true
+		}
+	})
+} else {
+	img.onload = () => {
+		canvas.width = img.width / 2
+		canvas.height = img.height / 2
+		canvas.style.width = img.width + 'px'
+		canvas.style.height = img.height + 'px'
 		playing = true
 	}
-})
+}
 
 document.getElementById('playPause').onclick = () => {
 	playing = !playing
@@ -37,7 +53,7 @@ document.getElementById('playPause').onclick = () => {
 
 function draw() {
 	// Update original canvas
-	cntxt.drawImage(video, 0, 0)
+	cntxt.drawImage(useWebCam ? video : img, 0, 0, canvas.width, canvas.height)
 
 	// Draw four-side polygonon
 	cntxt.beginPath()
@@ -54,7 +70,7 @@ function draw() {
 	cntxt.beginPath()
 	for (let anchor of anchors) {
 		cntxt.beginPath()
-		cntxt.arc(anchor[0], anchor[1], 5, 0, 2 * Math.PI)
+		cntxt.arc(anchor[0], anchor[1], 3, 0, 2 * Math.PI)
 		cntxt.fill()
 	}
 
@@ -96,8 +112,8 @@ function draw() {
 
 canvas.onmousedown = event => {
 	let targetRect = event.currentTarget.getBoundingClientRect(),
-		x = event.clientX - targetRect.left,
-		y = event.clientY - targetRect.top,
+		x = (event.clientX - targetRect.left) / 2,
+		y = (event.clientY - targetRect.top) / 2,
 		bestDist = Infinity
 
 	for (let anchor of anchors) {
@@ -115,8 +131,8 @@ canvas.onmousemove = event => {
 	}
 
 	let targetRect = event.currentTarget.getBoundingClientRect(),
-		x = event.clientX - targetRect.left,
-		y = event.clientY - targetRect.top
+		x = (event.clientX - targetRect.left) / 2,
+		y = (event.clientY - targetRect.top) / 2
 
 	// Update anchor
 	dragging[0] = x
@@ -135,8 +151,8 @@ function getDist(a, b) {
 
 function updatePixels() {
 	// Update final rectangle size
-	canvas2.width = (getDist(A, B) + getDist(C, D)) / 4
-	canvas2.height = (getDist(A, D) + getDist(B, C)) / 4
+	canvas2.width = (getDist(A, B) + getDist(C, D)) / 2
+	canvas2.height = (getDist(A, D) + getDist(B, C)) / 2
 	canvas2.style.width = (2 * canvas2.width) + 'px'
 	canvas2.style.height = (2 * canvas2.height) + 'px'
 	cntxt2.fillStyle = 'white'
