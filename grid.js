@@ -1,3 +1,12 @@
+/*
+ * This is a JavaScript Scratchpad.
+ *
+ * Enter some JavaScript, then Right Click or choose from the Execute Menu:
+ * 1. Run to evaluate the selected text (Cmd-R),
+ * 2. Inspect to bring up an Object Inspector on the result (Cmd-I), or,
+ * 3. Display to insert the result in a comment after the selection. (Cmd-L)
+ */
+
 function make_grid(sizex, sizey, unit_size) {
 	var gxsize = Math.ceil(sizex / unit_size) + 1;
 	var gysize = Math.ceil(sizey / unit_size) + 1;
@@ -5,7 +14,7 @@ function make_grid(sizex, sizey, unit_size) {
 
 	for (var i = 0; i < gxsize; i++) {
 		grid[i] = new Array(gysize);
-		for (var j = 0; j < gysize²; j++) {
+		for (var j = 0; j < gysize; j++) {
 			grid[i][j] = 0;
 		}
 	}
@@ -104,6 +113,72 @@ function make_grid(sizex, sizey, unit_size) {
 	};
 
 	grid.astar = function () {
+		[ball, path] = this._astar()
+
+		function line_obs(p1, p2){
+			var x1 = p1[0]
+			var x2 = p2[0]
+			var y1 = p1[1]
+			var y2 = p2[1]
+			if (x1 == x2){
+				var ymin = Math.min(y1,y2)
+				var ymax = Math.max(y1,y2)
+				for (var yi = ymin; yi <= ymax; yi++){
+					if (grid[x1][yi] == 1 || grid[x1][yi] == 2){
+						return true
+					}
+				} 
+			}
+			else {
+				var ys = y2-y1
+				var xs = x2-x1
+				var xmin = Math.min(x1,x2)
+				var xmax = Math.max(x1,x2)
+				for (var xi = xmin; xi <= xmax; xi++){
+					var yp = Math.ceil(ys*((xi-x1)/xs)+y1)
+					var ym = Math.floor(ys*((xi-x1)/xs)+y1)
+					if (grid[xi][yp] == 1 || grid[xi][yp] == 2){
+						return true
+					} 
+					if (grid[xi][ym] == 1 || grid[xi][ym] == 2){
+						return true
+					}
+				}
+			}
+			return false
+		}
+		
+		function xxx(path, comp){
+			if (path.length <= 1){
+				return path
+			}
+
+			var first = path[0]
+			var last = path[path.length - 1]
+			
+			if (comp(first,last)){
+				var index = Math.floor(path.length/2)
+				
+				return Array.concat(xxx(path.slice(0,index), comp), [path[index]], xxx(path.slice(index+1,path.length), comp))
+				
+			} else {
+				return [first, last]
+			}
+			
+		}
+
+		path = xxx(path,line_obs)
+		ball[0] = ball[0]*this.unit_size
+		ball[1] = ball[1]*this.unit_size
+		
+		for (var i = 0; i < path.length; i++){
+			path[i] = [path[i][0]*this.unit_size, path[i][1]*this.unit_size]
+		}
+		return [ball, path]
+
+	}
+
+	grid._astar = function () {
 		var closedSet = new Array(this.length);
 		for (var i = 0; i < closedSet.length; i++) {
 			closedSet[i] = new Array(this[i].length);
@@ -187,14 +262,14 @@ function make_grid(sizex, sizey, unit_size) {
 					var c = current
 					var path = []
 					while (c != undefined) {
-						path.push([c[0] * this.unit_size, c[1] * this.unit_size])
+						path.push([c[0], c[1]])
 						if (this[c[0]][c[1]] == 0) {
 							this[c[0]][c[1]] = 9
 						}
 						c = cameFrom[c[0]][c[1]]
 					}
 					return [
-						[current[0] * this.unit_size, current[1] * this.unit_size], path
+						[current[0], current[1]], path
 					];
 				}
 			}
@@ -237,3 +312,4 @@ function make_grid(sizex, sizey, unit_size) {
 
 	return grid;
 }
+
