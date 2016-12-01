@@ -179,7 +179,7 @@ function draw() {
 						bestBall = ball
 					}
 				}
-				if (bestBall && bestDist < 1e-2) {
+				if (bestBall) {
 					// Grab it
 					balls.splice(balls.indexOf(bestBall), 1)
 					path = null
