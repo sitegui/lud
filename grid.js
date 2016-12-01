@@ -3,6 +3,14 @@
 function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 	let gxsize = Math.floor(sizex / unitSize) + 1
 	let gysize = Math.floor(sizey / unitSize) + 1
+
+	/*
+	 * grid is a matrix grid[x][y] of numbers.
+	 * 0 = free
+	 * 1 = obstacle
+	 * 2 = blocked due to being close to an obstacle
+	 * 4 = ball
+	 */
 	let grid = new Array(gxsize)
 	for (let i = 0; i < gxsize; i++) {
 		grid[i] = new Array(gysize)
@@ -16,7 +24,16 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 	grid.center = [centerx, centery]
 	grid.unitSize = unitSize
 	grid.r = 0
+	grid.ballPos = []
+	grid.robotPos = [0, 0]
 
+	/**
+	 * Add an obstacle, setting all grid tiles that intersect
+	 * with it as blocked
+	 * @param {number} posx
+	 * @param {number} posy
+	 * @param {number} r
+	 */
 	grid.addObs = function (posx, posy, r) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
@@ -46,16 +63,23 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 		}
 	}
 
+	/**
+	 * Reset obstable, robot and ball positions
+	 */
 	grid.reset = function () {
 		for (let i = 0; i < this.length; i++) {
-			for (let j = 0; j < this[i].length; j++) {
-				this[i][j] = 0
-			}
+			this[i].fill(0)
 		}
 		this.robotPos = [0, 0]
 		this.ballPos = []
 	}
 
+	/**
+	 * Augment all blocked tiles with the robot radius, so that
+	 * the robot does not try to get into a space in which it would
+	 * not normally fit
+	 * @param {number} robotR - robot radius
+	 */
 	grid.prepare = function (robotR) {
 		let gr = Math.ceil(robotR / this.unitSize)
 		this.r = gr
@@ -78,23 +102,25 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 		}
 	}
 
-	grid.robotPos = [0, 0]
+	/**
+	 * Add a ball in the given position
+	 * @param {number} posx
+	 * @param {number} posy
+	 */
 	grid.placeRobot = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
 		let rx = Math.round(posx / this.unitSize)
 		let ry = Math.round(posy / this.unitSize)
-		for (let i = 0; i < this.length; i++) {
-			let done = false
+
+		// Remove a previous robot from the grid
+		// GUI: is it necessary?
+		outerFor: for (let i = 0; i < this.length; i++) {
 			for (let j = 0; j < this[i].length; j++) {
 				if (this[i][j] === 3) {
 					this[i][j] = 0
-					done = true
-					break
+					break outerFor
 				}
-			}
-			if (done) {
-				break
 			}
 		}
 
@@ -102,7 +128,11 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 		this.robotPos = [rx, ry]
 	}
 
-	grid.ballPos = []
+	/**
+	 * Add a ball in the given position
+	 * @param {number} posx
+	 * @param {number} posy
+	 */
 	grid.addBall = function (posx, posy) {
 		posx = posx + this.center[0]
 		posy = posy + this.center[1]
@@ -124,11 +154,17 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 		}
 		let [ball, path] = this._astar()
 
-		function lineObs(p1, p2) {
-			let x1 = p1[0]
-			let x2 = p2[0]
-			let y1 = p1[1]
-			let y2 = p2[1]
+		let originalPath = path.map(point => [point[0] * this.unitSize - this.center[0], point[1] * this.unitSize - this.center[1]]).reverse()
+
+		/**
+		 * Check whether a straight line between two points intersects
+		 * any obstacle
+		 * @param {Array<number>} p1
+		 * @param {Array<number>} p2
+		 * @returns {boolean}
+		 */
+		function intersectsObs(p1, p2) {
+			let [x1, y1] = p1, [x2, y2] = p2
 			if (x1 === x2) {
 				let ymin = Math.min(y1, y2)
 				let ymax = Math.max(y1, y2)
@@ -138,17 +174,27 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 					}
 				}
 			} else {
-				let ys = y2 - y1
-				let xs = x2 - x1
-				let xmin = Math.min(x1, x2)
-				let xmax = Math.max(x1, x2)
+				let ys = y2 - y1,
+					xs = x2 - x1,
+					xmin = Math.min(x1, x2),
+					xmax = Math.max(x1, x2),
+					ymin = Math.min(y1, y2),
+					ymax = Math.max(y1, y2)
 				for (let xi = xmin; xi <= xmax; xi++) {
-					let yp = Math.ceil(ys * ((xi - x1) / xs) + y1)
-					let ym = Math.floor(ys * ((xi - x1) / xs) + y1)
-					if (grid[xi][yp] === 1 || grid[xi][yp] === 2) {
+					let yiFloat = ys * ((xi - x1) / xs) + y1,
+						yCeil = Math.ceil(yiFloat),
+						yFloor = Math.floor(yiFloat)
+					if (grid[xi][yCeil] === 1 || grid[xi][yCeil] === 2 ||
+						grid[xi][yFloor] === 1 || grid[xi][yFloor] === 2) {
 						return true
 					}
-					if (grid[xi][ym] === 1 || grid[xi][ym] === 2) {
+				}
+				for (let yi = ymin; yi <= ymax; yi++) {
+					let xiFloat = xs * ((yi - y1) / ys) + x1,
+						xCeil = Math.ceil(xiFloat),
+						xFloor = Math.floor(xiFloat)
+					if (grid[xCeil] && (grid[xCeil][yi] === 1 || grid[xCeil][yi] === 2) ||
+						grid[xFloor] && (grid[xFloor][yi] === 1 || grid[xFloor][yi] === 2)) {
 						return true
 					}
 				}
@@ -156,33 +202,40 @@ function makeGrid(sizex, sizey, unitSize, centerx = 0, centery = 0) {
 			return false
 		}
 
-		function xxx(path, comp) {
-			if (path.length <= 1) {
-				return path
+		/**
+		 * Returns a simplified version of the original path
+		 * It recursively tries to eliminate segments from it
+		 * @param {Array<Array<number>>} path
+		 * @returns {Array<Array<number>>}
+		 */
+		function simplifyPath(path) {
+			if (path.length <= 2) {
+				return []
 			}
 
-			let first = path[0]
-			let last = path[path.length - 1]
+			let first = path[0],
+				last = path[path.length - 1]
 
-			if (comp(first, last)) {
-				let index = Math.floor(path.length / 2)
-
-				return Array.concat(xxx(path.slice(0, index), comp), [path[index]], xxx(path.slice(index + 1, path.length), comp))
-
-			} else {
-				return [first, last]
+			if (!intersectsObs(first, last)) {
+				// Eliminate all intermediate points
+				return []
 			}
 
+			let middle = Math.floor(path.length / 2)
+
+			return simplifyPath(path.slice(0, middle)).concat(
+				[path[middle]],
+				simplifyPath(path.slice(middle + 1)))
 		}
 
-		path = xxx(path, lineObs)
+		path = [path[0], ...simplifyPath(path), path[path.length - 1]]
 		ball[0] = ball[0] * this.unitSize - this.center[0]
 		ball[1] = ball[1] * this.unitSize - this.center[1]
 
 		for (let i = 0; i < path.length; i++) {
 			path[i] = [path[i][0] * this.unitSize - this.center[0], path[i][1] * this.unitSize - this.center[1]]
 		}
-		return [ball, path.reverse()]
+		return [ball, path.reverse(), originalPath]
 
 	}
 

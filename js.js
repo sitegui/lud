@@ -36,7 +36,11 @@ let canvas = document.getElementById('canvas'),
 	// {x,y r}
 	obs = [],
 	// Grid for paths calc
-	grid = makeGrid(rW, rH, 0.25, rW / 2, rH / 2)
+	grid = makeGrid(rW, rH, 0.25, rW / 2, rH / 2),
+	// Cached path to follow
+	path = null,
+	// Cached original path to follow
+	originalPath = null
 
 canvas.width = vW
 canvas.height = vH
@@ -50,9 +54,6 @@ cntxt.translate(vW / 2, vH / 2)
 cntxt.scale(prop, -prop)
 
 function draw() {
-
-	grid.reset()
-
 	let now = Date.now(),
 		dt = (Date.now() - lastFrame) / 1e3
 	cntxt.fillStyle = '#A44C48'
@@ -80,14 +81,9 @@ function draw() {
 	cntxt.strokeStyle = '#EEEEEE'
 	cntxt.stroke()
 
-	//Draw obs
+	// Draw obstacles
+	grid.reset()
 	for (let ob of obs) {
-
-		cntxt.beginPath()
-		cntxt.arc(ob.x, ob.y, 2 * (ob.r + bR / 2), 0, 2 * Math.PI)
-		cntxt.fillStyle = '#ffcccc'
-		cntxt.fill()
-
 		cntxt.beginPath()
 		cntxt.arc(ob.x, ob.y, 2 * ob.r, 0, 2 * Math.PI)
 		cntxt.fillStyle = '#cccccc'
@@ -123,32 +119,17 @@ function draw() {
 	cntxt.restore()
 
 	grid.placeRobot(bX, bY)
-	let [ballPos, path] = grid.astar(),
-		nextP = path.length > 1 ? path[1] : path[0]
-
-	if (bTX !== nextP[0] || bTY !== nextP[1]) {
+	if (!path) {
+		let [, newPath, newOriginalPath] = grid.astar()
+		path = newPath
+		originalPath = newOriginalPath
+		if (path.length > 1) {
+			path.shift()
+		}
+		let nextP = path.shift()
 		bTX = nextP[0]
 		bTY = nextP[1]
 		bM = 'angle'
-	}
-
-	if (bTX === bX && bTY === bY && ballPos) {
-		// Find closest ball
-		let bestBall = null,
-			bestDist = Infinity
-		for (let ball of balls) {
-			let dx = bX - ball.x,
-				dy = bY - ball.y,
-				dist = Math.sqrt(dx * dx + dy * dy)
-			if (dist < bestDist) {
-				bestDist = dist
-				bestBall = ball
-			}
-		}
-		if (bestBall) {
-			// Grab it
-			balls.splice(balls.indexOf(bestBall), 1)
-		}
 	}
 
 	// Update bot
@@ -179,6 +160,33 @@ function draw() {
 			bX = bTX
 			bY = bTY
 		}
+		if (Math.abs(ds) < 1e-4) {
+			let nextP = path.shift()
+			if (nextP) {
+				bTX = nextP[0]
+				bTY = nextP[1]
+				bM = 'angle'
+			} else {
+				// Find closest ball
+				let bestBall = null,
+					bestDist = Infinity
+				for (let ball of balls) {
+					let dx = bX - ball.x,
+						dy = bY - ball.y,
+						dist = Math.sqrt(dx * dx + dy * dy)
+					if (dist < bestDist) {
+						bestDist = dist
+						bestBall = ball
+					}
+				}
+				if (bestBall && bestDist < 1e-2) {
+					// Grab it
+					balls.splice(balls.indexOf(bestBall), 1)
+					path = null
+				}
+				bM = 'stop'
+			}
+		}
 	}
 
 	lastFrame = now
@@ -203,4 +211,5 @@ canvas.onclick = event => {
 			r: oR
 		})
 	}
+	path = null
 }
